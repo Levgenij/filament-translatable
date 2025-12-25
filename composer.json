@@ -1,0 +1,41 @@
+{
+    "name": "levgenij/filament-translatable",
+    "description": "Automatic translation support for Filament Resources based on levgenij/laravel-translatable",
+    "keywords": [
+        "laravel",
+        "filament",
+        "translatable",
+        "translations",
+        "i18n",
+        "multilingual",
+        "localization"
+    ],
+    "homepage": "https://github.com/levgenij/filament-translatable",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Levgenij",
+            "email": "levgenij@example.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "filament/filament": "^3.0|^4.0",
+        "levgenij/laravel-translatable": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Levgenij\\FilamentTranslatable\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Levgenij\\FilamentTranslatable\\FilamentTranslatableServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
+
