@@ -4,7 +4,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/levgenij/filament-translatable.svg?style=flat-square)](https://packagist.org/packages/levgenij/filament-translatable)
 [![License](https://img.shields.io/packagist/l/levgenij/filament-translatable.svg?style=flat-square)](https://packagist.org/packages/levgenij/filament-translatable)
 
-Automatic translation support for Filament Resources based on [levgenij/laravel-translatable](https://github.com/levgenij/laravel-translatable).
+Seamless multilingual support for Filament Resources with automatic translatable field generation based on [levgenij/laravel-translatable](https://github.com/levgenij/laravel-translatable).
 
 ![Filament Translatable Screenshot](docs/images/screenshot.png)
 
