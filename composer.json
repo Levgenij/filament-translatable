@@ -15,12 +15,12 @@
     "authors": [
         {
             "name": "Levgenij",
-            "email": "levgenij@example.com"
+            "email": "e.lypei@redentu.com"
         }
     ],
     "require": {
         "php": "^8.1",
-        "filament/filament": "^3.0|^4.0",
+        "filament/filament": "^3.0|^4.0|^5.0",
         "levgenij/laravel-translatable": "^3.0"
     },
     "autoload": {
