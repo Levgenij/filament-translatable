@@ -7,6 +7,17 @@ Seamless multilingual support for Filament Resources with automatic translatable
 
 ![Filament Translatable Screenshot](docs/images/screenshot.png)
 
+## 📦 Version Compatibility
+
+Please install the version that matches your Filament version:
+
+| Filament Version | Package Version | Branch | Installation |
+|------------------|-----------------|--------|--------------|
+| **Filament v5.x** | `^2.0`          | `v2`   | `composer require levgenij/filament-translatable:^2.0` |
+| **Filament v3/v4** | `^1.0`          | `main` | `composer require levgenij/filament-translatable:^1.0` |
+
+> **Note:** This documentation is for **Filament v5**. If you are using Filament v3 or v4, please switch to the v1 documentation.
+
 ## Features
 
 - **Zero Configuration** - Translatable fields are detected automatically from the model
@@ -14,13 +25,13 @@ Seamless multilingual support for Filament Resources with automatic translatable
 - **Locale Badges** - Visual indicators next to field labels: `Title [EN]`
 - **Clean Form Schema** - No wrappers or special syntax needed
 - **Single Locale Mode** - No tabs or badges when only one locale is configured
-- **Filament v3 & v4** - Compatible with both major versions
+- **Filament 5** - Built for Filament 5 (Schema API)
 
 ## Requirements
 
-- PHP 8.1+
-- Laravel 10+
-- Filament 3.0+ or 4.0+
+- PHP 8.2+
+- Laravel 11+
+- Filament 5.0+
 - levgenij/laravel-translatable 3.0+
 
 ## Installation
@@ -87,8 +98,12 @@ class Category extends Model
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\Select;
 use Filament\Resources\Resource;
 use Levgenij\FilamentTranslatable\Concerns\TranslatableResource;
 
@@ -98,26 +113,26 @@ class CategoryResource extends Resource
 
     protected static ?string $model = Category::class;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\Section::make([
+        return $schema->components([
+            Section::make()->schema([
                 // Translatable fields (detected from $model->translatable)
-                Forms\Components\TextInput::make('title')
+                TextInput::make('title')
                     ->label('Title')
                     ->required(),
 
-                Forms\Components\TextInput::make('slug')
+                TextInput::make('slug')
                     ->label('Slug'),
 
-                Forms\Components\Textarea::make('description')
+                Textarea::make('description')
                     ->label('Description'),
 
                 // Non-translatable fields (remain unchanged)
-                Forms\Components\Toggle::make('is_active')
+                Toggle::make('is_active')
                     ->label('Active'),
 
-                Forms\Components\Select::make('parent_id')
+                Select::make('parent_id')
                     ->label('Parent Category')
                     ->options(fn () => Category::pluck('title', 'id')),
             ]),
@@ -332,10 +347,13 @@ class CreateCategory extends CreateRecord
 Validation works as expected. Use the `translations.{locale}.{field}` path for custom rules:
 
 ```php
-public static function form(Form $form): Form
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\TextInput;
+
+public static function form(Schema $schema): Schema
 {
-    return $form->schema([
-        Forms\Components\TextInput::make('title')
+    return $schema->components([
+        TextInput::make('title')
             ->required()
             ->maxLength(255)
             ->rules(['unique:categories_translations,title']),

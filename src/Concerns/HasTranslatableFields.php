@@ -2,17 +2,15 @@
 
 namespace Levgenij\FilamentTranslatable\Concerns;
 
-use Filament\Forms\Form;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Levgenij\FilamentTranslatable\Support\TranslatableSchemaTransformer;
 
 /**
- * Universal trait for CreateRecord and EditRecord pages to enable automatic translation support.
- *
- * Automatically detects if used in CreateRecord or EditRecord and applies appropriate logic.
+ * Trait for CreateRecord and EditRecord pages (Filament 5) using Schema API.
  *
  * Usage:
  * 1. Add `use TranslatableResource;` to your Resource class
@@ -22,13 +20,6 @@ use Levgenij\FilamentTranslatable\Support\TranslatableSchemaTransformer;
  * @example
  * ```php
  * class CreateCategory extends CreateRecord
- * {
- *     use HasTranslatableFields;
- *
- *     protected static string $resource = CategoryResource::class;
- * }
- *
- * class EditCategory extends EditRecord
  * {
  *     use HasTranslatableFields;
  *
@@ -46,23 +37,22 @@ trait HasTranslatableFields
     protected array $pendingTranslations = [];
 
     /**
-     * Override form to transform schema for translatable fields.
+     * Override form to transform schema for translatable fields (Schema API – Filament 5).
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        $form = parent::form($form);
+        $schema = parent::form($schema);
 
         $translatableAttributes = static::getResource()::getTranslatableAttributes();
 
         if (empty($translatableAttributes)) {
-            return $form;
+            return $schema;
         }
 
-        // Transform the schema to add locale tabs for translatable fields
-        $schema = $form->getComponents();
-        $transformedSchema = TranslatableSchemaTransformer::transform($schema, $translatableAttributes);
+        $components = $schema->getComponents();
+        $transformedComponents = TranslatableSchemaTransformer::transform($components, $translatableAttributes);
 
-        return $form->schema($transformedSchema);
+        return $schema->components($transformedComponents);
     }
 
     /**

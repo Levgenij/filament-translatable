@@ -20,9 +20,9 @@ use Levgenij\LaravelTranslatable\Translatable as TranslatableTrait;
  * {
  *     use TranslatableResource;
  *
- *     public static function form(Form $form): Form
+ *     public static function form(Schema $schema): Schema
  *     {
- *         return $form->schema([
+ *         return $schema->components([
  *             // Translatable fields (auto-detected from model)
  *             TextInput::make('title')->required(),
  *             TextInput::make('slug'),

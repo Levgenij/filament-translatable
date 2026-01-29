@@ -2,15 +2,15 @@
 
 namespace Levgenij\FilamentTranslatable\Support;
 
-use Filament\Forms\Components\Component;
+use Filament\Schemas\Components\Component;
 use Filament\Forms\Components\Field;
-use Filament\Forms\Components\Tabs;
+use Filament\Schemas\Components\Tabs;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
 use ReflectionClass;
 
 /**
- * Automatically transforms Filament form schema to handle translatable fields.
+ * Automatically transforms Filament 5 form schema to handle translatable fields.
  *
  * Features:
  * - Detects translatable fields from model's $translatable property
@@ -164,7 +164,7 @@ final class TranslatableSchemaTransformer
     /**
      * Create locale tabs for a group of translatable fields.
      *
-     * @param  array<Component>  $fields
+     * @param  array<Field>  $fields
      * @param  array<string>  $translatableAttributes
      */
     private static function createLocaleTabs(array $fields, array $translatableAttributes): Tabs
