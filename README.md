@@ -13,8 +13,8 @@ Please install the version that matches your Filament version:
 
 | Filament Version | Package Version | Branch | Installation |
 |------------------|-----------------|--------|--------------|
-| **Filament v5.x** | `^2.0`          | `v2`   | `composer require levgenij/filament-translatable:^2.0` |
-| **Filament v3/v4** | `^1.0`          | `main` | `composer require levgenij/filament-translatable:^1.0` |
+| **Filament v5.x** | `^2.0`          | `main`   | `composer require levgenij/filament-translatable:^2.0` |
+| **Filament v3/v4** | `^1.0`          | `v1` | `composer require levgenij/filament-translatable:^1.0` |
 
 > **Note:** This documentation is for **Filament v5**. If you are using Filament v3 or v4, please switch to the v1 documentation.
 
