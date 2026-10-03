@@ -213,6 +213,23 @@ Customize the locale badge appearance:
 'badge_style' => 'display: inline-flex; padding: 2px 6px; font-size: 10px; background-color: #3b82f6; color: white; border-radius: 4px;',
 ```
 
+### Blank Values
+
+A locale whose fields are all blank is not stored, and on edit its existing row is removed. Define what counts as blank:
+
+```php
+'blank' => [
+    // Set to true to treat HTML markup without text ("<p></p>", "<p><br></p>") as blank
+    'strip_tags' => false,
+    // Used with strip_tags: tags that count as content even without text
+    'content_tags' => ['img', 'iframe', 'video', 'audio', 'embed', 'object', 'svg'],
+    // Characters ignored when looking for text (non-breaking space, zero-width space)
+    'invisible_characters' => ["\u{00A0}", "\u{200B}"],
+],
+```
+
+The same rules are available as `TranslatableSchemaTransformer::isBlank($value)`.
+
 ## How It Works
 
 ### Architecture
@@ -237,9 +254,12 @@ src/
    - Adds locale badges to labels
    - Non-translatable fields remain unchanged
 
-3. **Saving** - The trait automatically:
+3. **Loading** - The edit form shows only stored translation rows. A locale without a stored row stays empty: no fallback locale and no model accessors are applied.
+
+4. **Saving** - The trait automatically:
    - Extracts translation data from the form
    - Saves them via `$model->saveTranslation($locale, $data)`
+   - Skips a locale whose fields are all blank (see [Blank Values](#blank-values)) and deletes its existing row
 
 ### Form Data Structure
 

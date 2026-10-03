@@ -56,5 +56,28 @@ return [
 
     'tab_label_format' => '{CODE} - {name}',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Blank Values
+    |--------------------------------------------------------------------------
+    |
+    | Define what counts as a blank form value. A locale whose fields are all
+    | blank is not stored, and on edit its existing translation row is removed.
+    |
+    | - strip_tags: treat HTML markup without text as blank (e.g. "<p></p>").
+    |   Disabled by default, so any markup counts as content.
+    | - content_tags: used with strip_tags; tags that count as content even
+    |   without text, so a locale with only an image or an embed is not removed.
+    | - invisible_characters: characters ignored when looking for text.
+    |   Leading and trailing whitespace is always ignored.
+    |
+    */
+
+    'blank' => [
+        'strip_tags' => false,
+        'content_tags' => ['img', 'iframe', 'video', 'audio', 'embed', 'object', 'svg'],
+        'invisible_characters' => ["\u{00A0}", "\u{200B}"],
+    ],
+
 ];
 

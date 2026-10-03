@@ -5,6 +5,20 @@ All notable changes to `filament-translatable` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - Unreleased
+
+### Changed (breaking)
+- `TranslatableSchemaTransformer::prepareTranslationsForForm()` reads stored translation rows only. Missing locales stay empty instead of showing the fallback locale, and model accessors are no longer applied to form values.
+- Saving a locale whose fields are all blank no longer creates an empty translation row. On edit, the existing row for that locale is deleted.
+
+### Upgrade notes
+- Required fields stay required in every locale tab. Before, the fallback pre-filled missing locales, so a record could be saved without entering them. Now each missing translation must be filled in before saving.
+
+### Added
+- `TranslatableSchemaTransformer::saveTranslations()` - shared save logic for pages with custom record handling.
+- `TranslatableSchemaTransformer::isBlank()` - blank check driven by the `blank` config.
+- `blank` config option (`strip_tags`, `content_tags`, `invisible_characters`) to define what counts as a blank value. `strip_tags` is disabled by default, so any HTML markup counts as content. When enabled, a value with only an image or an embed is still not blank.
+
 ## [2.0.0] - 2026-01-29
 
 ### Changed

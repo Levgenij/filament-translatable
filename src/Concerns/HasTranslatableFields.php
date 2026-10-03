@@ -6,7 +6,6 @@ use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 use Levgenij\FilamentTranslatable\Support\TranslatableSchemaTransformer;
 
 /**
@@ -129,27 +128,12 @@ trait HasTranslatableFields
      */
     protected function saveTranslations(Model $record): void
     {
-        if (empty($this->pendingTranslations)) {
-            return;
-        }
-
-        $translatableAttributes = static::getResource()::getTranslatableAttributes();
-        $isCreate = $this instanceof CreateRecord;
-
-        foreach ($this->pendingTranslations as $locale => $attributes) {
-            $filteredAttributes = Arr::only($attributes, $translatableAttributes);
-
-            // For create - filter empty values, for edit - allow clearing
-            if ($isCreate) {
-                $filteredAttributes = array_filter($filteredAttributes, fn ($value) => $value !== null && $value !== '');
-            } else {
-                $filteredAttributes = array_filter($filteredAttributes, fn ($value) => $value !== null);
-            }
-
-            if (! empty($filteredAttributes)) {
-                $record->saveTranslation($locale, $filteredAttributes);
-            }
-        }
+        TranslatableSchemaTransformer::saveTranslations(
+            $record,
+            $this->pendingTranslations,
+            static::getResource()::getTranslatableAttributes(),
+            $this instanceof CreateRecord,
+        );
 
         $this->pendingTranslations = [];
     }

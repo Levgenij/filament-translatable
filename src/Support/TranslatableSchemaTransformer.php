@@ -6,6 +6,7 @@ use Filament\Schemas\Components\Component;
 use Filament\Forms\Components\Field;
 use Filament\Schemas\Components\Tabs;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
 use ReflectionClass;
 
@@ -329,25 +330,77 @@ final class TranslatableSchemaTransformer
 
     /**
      * Prepare translations data for form fill.
+     * Values come from stored translation rows as saved: no fallback locale, no model accessors.
+     * A locale without a stored row stays empty.
      *
      * @param  array<string>  $translatableAttributes
      * @return array<string, array<string, mixed>>
      */
     public static function prepareTranslationsForForm(Model $model, array $translatableAttributes): array
     {
+        $rows = $model->translations->keyBy($model->getLocaleKey());
         $translations = [];
-        $locales = self::getLocaleCodes();
 
-        foreach ($locales as $locale) {
-            $translation = $model->translate($locale);
-            $translations[$locale] = [];
+        foreach (self::getLocaleCodes() as $locale) {
+            $stored = $rows->get($locale)?->getAttributes() ?? [];
 
             foreach ($translatableAttributes as $attribute) {
-                $translations[$locale][$attribute] = $translation?->{$attribute} ?? '';
+                $translations[$locale][$attribute] = $stored[$attribute] ?? '';
             }
         }
 
         return $translations;
+    }
+
+    /**
+     * Save form translations for each locale.
+     * A locale whose fields are all blank is not stored, and its existing row is removed.
+     * On create, empty strings are dropped. On edit, they are kept so a field can be cleared.
+     *
+     * @param  array<string, array<string, mixed>>  $translations
+     * @param  array<string>  $translatableAttributes
+     */
+    public static function saveTranslations(Model $model, array $translations, array $translatableAttributes, bool $isCreate): void
+    {
+        foreach ($translations as $locale => $attributes) {
+            $attributes = Arr::only($attributes, $translatableAttributes);
+
+            if (self::isBlank($attributes)) {
+                if (! $isCreate) {
+                    $model->translations()->where($model->getLocaleKey(), $locale)->delete();
+                }
+
+                continue;
+            }
+
+            $model->saveTranslation($locale, array_filter(
+                $attributes,
+                fn (mixed $value): bool => $value !== null && (! $isCreate || $value !== ''),
+            ));
+        }
+    }
+
+    /**
+     * Whether a form value has no visible content.
+     * Rules come from `filament-translatable.blank`.
+     */
+    public static function isBlank(mixed $value): bool
+    {
+        if (is_array($value)) {
+            return collect($value)->every(fn (mixed $item): bool => self::isBlank($item));
+        }
+
+        if (is_string($value)) {
+            $rules = config('filament-translatable.blank');
+
+            if ($rules['strip_tags']) {
+                $value = strip_tags($value, $rules['content_tags']);
+            }
+
+            $value = str_replace($rules['invisible_characters'], '', html_entity_decode($value, ENT_QUOTES | ENT_HTML5));
+        }
+
+        return blank($value);
     }
 
     /**
