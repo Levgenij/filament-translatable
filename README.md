@@ -399,7 +399,9 @@ class CreateCategory extends CreateRecord
 
 ### Custom Validation
 
-Validation works as expected. Use the `translations.{locale}.{field}` path for custom rules:
+Validation works as expected. Field rules are copied to every locale tab.
+
+`unique()` on a translatable field checks the translations table and is scoped to the field locale. With `ignoreRecord: true` the edited record's own translation is ignored:
 
 ```php
 use Filament\Schemas\Schema;
@@ -408,13 +410,15 @@ use Filament\Forms\Components\TextInput;
 public static function form(Schema $schema): Schema
 {
     return $schema->components([
-        TextInput::make('title')
+        TextInput::make('slug')
             ->required()
             ->maxLength(255)
-            ->rules(['unique:categories_translations,title']),
+            ->unique(ignoreRecord: true), // unique per locale in categories_translations
     ]);
 }
 ```
+
+The rule is only rewritten when it targets the model table and the field's own column (the default, or `column` set to the attribute name). With another table or column, or with a rule object passed to `rule()`, the rule is used as written.
 
 ## Database Structure
 

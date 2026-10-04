@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `tab_label_format` config option is now applied to locale tab labels.
+- `unique()` on a translatable field no longer fails with "Unknown column 'translations.{locale}.{field}'". The rule checks the translations table, is scoped to the field locale and ignores the edited record by the translation foreign key.
 
 ### Upgrade notes
 - The badge is enabled by default. Set `missing_translation_badge.enabled` to `false` to hide it.

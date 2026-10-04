@@ -2,12 +2,14 @@
 
 namespace Levgenij\FilamentTranslatable\Support;
 
+use Closure;
 use Filament\Schemas\Components\Component;
 use Filament\Forms\Components\Field;
 use Filament\Schemas\Components\Tabs;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
+use Illuminate\Validation\Rules\Unique;
 use ReflectionClass;
 
 /**
@@ -259,12 +261,82 @@ final class TranslatableSchemaTransformer
             $property->setValue($cloned, $newStatePath);
         }
 
+        self::scopeUniqueRulesToLocale($cloned, $originalName, $locale);
+
         // Add locale badge
         if ($addBadge) {
             self::addLocaleBadge($cloned, $locale);
         }
 
         return $cloned;
+    }
+
+    /**
+     * Wrap the field's closure rules so a `unique` rule built for the model table checks the translations
+     * table. Each closure builds a new rule on every evaluation, so the wrapper sees the final rule,
+     * including `modifyRuleUsing` changes, and changing it does not leak into the other locales.
+     * Rule objects passed directly are shared by all locale clones and are left unchanged.
+     */
+    private static function scopeUniqueRulesToLocale(Field $field, string $attribute, string $locale): void
+    {
+        /** @var array<array{mixed, bool|Closure}> $rules */
+        $rules = (fn (): array => $this->rules)->call($field);
+
+        $rules = array_map(
+            fn (array $entry): array => $entry[0] instanceof Closure
+                ? [
+                    static fn (Field $component): mixed => self::scopeUniqueRuleToLocale(
+                        $component->evaluate($entry[0]),
+                        $component,
+                        $attribute,
+                        $locale,
+                    ),
+                    $entry[1],
+                ]
+                : $entry,
+            $rules,
+        );
+
+        (function () use ($rules): void {
+            $this->rules = $rules;
+        })->call($field);
+    }
+
+    /**
+     * Filament's `unique()` checks the field name in the model table by default. A translatable field
+     * is named `translations.{locale}.{attribute}` and its values live in the translations table, so
+     * that query hits a column that does not exist. Such a rule is pointed to the translations table,
+     * limited to the field locale, and the ignored record is matched by the translation foreign key.
+     * The same applies when the column is set to the attribute name explicitly.
+     * A rule for another table or column is returned as is.
+     */
+    private static function scopeUniqueRuleToLocale(mixed $rule, Field $component, string $attribute, string $locale): mixed
+    {
+        $modelClass = $component->getModel();
+
+        if (! $rule instanceof Unique || ! $modelClass || ! method_exists($modelClass, 'getI18nTable')) {
+            return $rule;
+        }
+
+        [$table, $column, $ignore] = (fn (): array => [$this->table, $this->column, $this->ignore])->call($rule);
+
+        if (! in_array($column, [$component->getName(), $attribute], true) || $table !== $rule->resolveTableName($modelClass)) {
+            return $rule;
+        }
+
+        $model = new $modelClass;
+        $translationsTable = implode('.', array_filter([$model->getConnectionName(), $model->getI18nTable()]));
+
+        (function () use ($translationsTable, $attribute): void {
+            $this->table = $translationsTable;
+            $this->column = $attribute;
+            $this->ignore = null;
+            $this->idColumn = 'id';
+        })->call($rule);
+
+        return $rule
+            ->where($model->getLocaleKey(), $locale)
+            ->when($ignore !== null, fn (Unique $rule): Unique => $rule->whereNot($model->getForeignKey(), $ignore));
     }
 
     /**
