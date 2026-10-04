@@ -5,6 +5,20 @@ All notable changes to `filament-translatable` will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Missing translation badge on locale tabs whose fields are all blank, with a "No translation" tooltip. Blank is decided by the `blank` config, the same rules as saving. The marked tab button gets a `data-missing-translation` attribute for styling.
+- `missing_translation_badge` config option (`enabled`, `label`, `color`).
+- Package translations (`en`, `uk`) under the `filament-translatable` namespace.
+
+### Fixed
+- `tab_label_format` config option is now applied to locale tab labels.
+
+### Upgrade notes
+- The badge is enabled by default. Set `missing_translation_badge.enabled` to `false` to hide it.
+- An empty RichEditor submits `<p></p>`, which is content while `blank.strip_tags` is `false`. Enable `strip_tags` so empty rich text locales are marked and not stored.
+
 ## [3.0.0] - 2026-10-04
 
 ### Changed (breaking)

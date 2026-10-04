@@ -23,6 +23,7 @@ Please install the version that matches your Filament version:
 - **Zero Configuration** - Translatable fields are detected automatically from the model
 - **Language Tabs** - Fields are grouped into tabs for each locale
 - **Locale Badges** - Visual indicators next to field labels: `Title [EN]`
+- **Missing Translation Badge** - Locale tabs with only blank fields are marked with a badge
 - **Clean Form Schema** - No wrappers or special syntax needed
 - **Single Locale Mode** - No tabs or badges when only one locale is configured
 - **Filament 5** - Built for Filament 5 (Schema API)
@@ -213,13 +214,45 @@ Customize the locale badge appearance:
 'badge_style' => 'display: inline-flex; padding: 2px 6px; font-size: 10px; background-color: #3b82f6; color: white; border-radius: 4px;',
 ```
 
+### Tab Label Format
+
+Placeholders: `{CODE}` (uppercase locale code), `{code}` (lowercase locale code), `{name}` (native locale name).
+
+```php
+'tab_label_format' => '{CODE} - {name}',
+```
+
+### Missing Translation Badge
+
+A locale tab whose fields are all blank gets a badge with a "No translation" tooltip. Blank is decided by the same [Blank Values](#blank-values) rules as saving, applied to the field state with casts (a RichEditor document is checked as HTML). Field callbacks that run only on save, such as `dehydrateStateUsing()` or `dehydrated(false)`, are not applied to the badge.
+
+```php
+'missing_translation_badge' => [
+    'enabled' => true,
+    'label' => '•',
+    // Any Filament color name
+    'color' => 'warning',
+],
+```
+
+The marked tab also gets a `data-missing-translation` attribute. Filament adds the tab attributes to the tab button, the overflow dropdown item and the tab panel, so target the button to restyle the badge:
+
+```css
+.fi-tabs-item[data-missing-translation] > .fi-badge {
+    /* ... */
+}
+```
+
+The tooltip text comes from the `filament-translatable::translations.missing_translation` translation key (English and Ukrainian are included). Override it with `php artisan lang:publish` or in `lang/vendor/filament-translatable/{locale}/translations.php`.
+
 ### Blank Values
 
 A locale whose fields are all blank is not stored, and on edit its existing row is removed. Define what counts as blank:
 
 ```php
 'blank' => [
-    // Set to true to treat HTML markup without text ("<p></p>", "<p><br></p>") as blank
+    // Set to true to treat HTML markup without text ("<p></p>", "<p><br></p>") as blank.
+    // An empty RichEditor submits "<p></p>", so enable this when forms use it.
     'strip_tags' => false,
     // Used with strip_tags: tags that count as content even without text
     'content_tags' => ['img', 'iframe', 'video', 'audio', 'embed', 'object', 'svg'],
@@ -227,6 +260,8 @@ A locale whose fields are all blank is not stored, and on edit its existing row 
     'invisible_characters' => ["\u{00A0}", "\u{200B}"],
 ],
 ```
+
+With `strip_tags` enabled, RichEditor custom blocks (`<div data-type="customBlock">`) and mentions (`<span data-type="mention">`) have no text, so a locale with only them is blank. Add `div` or `span` to `content_tags` when forms use them.
 
 The same rules are available as `TranslatableSchemaTransformer::isBlank($value)`.
 

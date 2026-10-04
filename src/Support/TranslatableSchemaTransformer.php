@@ -171,6 +171,8 @@ final class TranslatableSchemaTransformer
     private static function createLocaleTabs(array $fields, array $translatableAttributes): Tabs
     {
         $locales = self::getLocales();
+        $labelFormat = config('filament-translatable.tab_label_format');
+        $missingTranslationBadge = config('filament-translatable.missing_translation_badge');
         $tabs = [];
 
         foreach ($locales as $code => $name) {
@@ -180,15 +182,53 @@ final class TranslatableSchemaTransformer
                 $tabSchema[] = self::cloneFieldForLocale($field, $code, true);
             }
 
-            $tabs[] = Tabs\Tab::make($code)
-                ->label(mb_strtoupper($code).' - '.$name)
+            $tab = Tabs\Tab::make($code)
+                ->label(strtr($labelFormat, ['{CODE}' => mb_strtoupper($code), '{code}' => $code, '{name}' => $name]))
                 ->schema($tabSchema);
+
+            if ($missingTranslationBadge['enabled']) {
+                self::addMissingTranslationBadge($tab, $missingTranslationBadge);
+            }
+
+            $tabs[] = $tab;
         }
 
         return Tabs::make('locale_tabs_'.uniqid())
             ->tabs($tabs)
             ->contained(false)
             ->extraAttributes(['class' => 'translatable-locale-tabs']);
+    }
+
+    /**
+     * Mark a locale tab whose fields are all blank with a badge and a `data-missing-translation` attribute.
+     *
+     * @param  array{label: string, color: string}  $badge
+     */
+    private static function addMissingTranslationBadge(Tabs\Tab $tab, array $badge): void
+    {
+        $tab
+            ->badge(fn (Tabs\Tab $component): ?string => self::isMissingTranslation($component) ? $badge['label'] : null)
+            ->badgeColor($badge['color'])
+            ->badgeTooltip(fn (): string => __('filament-translatable::translations.missing_translation'))
+            ->extraAttributes(fn (Tabs\Tab $component): array => self::isMissingTranslation($component)
+                ? ['data-missing-translation' => 'true']
+                : []);
+    }
+
+    /**
+     * Uses the state with casts applied (a RichEditor document becomes HTML), so the same
+     * blank rules apply as in `saveTranslations()`.
+     */
+    private static function isMissingTranslation(Tabs\Tab $tab): bool
+    {
+        $fields = $tab->getChildComponents();
+
+        // ponytail: Filament reads the badge and attributes about 5 times per render, so a blank
+        // tab converts its RichEditor document to HTML each time. Cheap for empty documents;
+        // memoize per tab and raw state if large rich content in blank tabs shows up in profiling.
+        return $fields !== [] && collect($fields)->every(
+            fn (Field $field): bool => self::isBlank($field->getState()),
+        );
     }
 
     /**

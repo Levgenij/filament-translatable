@@ -22,6 +22,8 @@ class FilamentTranslatableServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'filament-translatable');
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/filament-translatable.php' => config_path('filament-translatable.php'),

@@ -58,6 +58,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Missing Translation Badge
+    |--------------------------------------------------------------------------
+    |
+    | Show a badge on a locale tab when all of its fields are blank, using
+    | the same rules as saving (see "Blank Values").
+    | The tab button also gets a `data-missing-translation` attribute
+    | that can be used to restyle the badge.
+    |
+    | - enabled: set to false to hide the badge.
+    | - label: badge text.
+    | - color: any Filament color name (e.g. "warning", "danger", "gray").
+    |
+    */
+
+    'missing_translation_badge' => [
+        'enabled' => true,
+        'label' => '•',
+        'color' => 'warning',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Blank Values
     |--------------------------------------------------------------------------
     |
@@ -65,9 +87,11 @@ return [
     | blank is not stored, and on edit its existing translation row is removed.
     |
     | - strip_tags: treat HTML markup without text as blank (e.g. "<p></p>").
-    |   Disabled by default, so any markup counts as content.
+    |   Disabled by default, so any markup counts as content. An empty
+    |   RichEditor submits "<p></p>", so enable this when forms use it.
     | - content_tags: used with strip_tags; tags that count as content even
     |   without text, so a locale with only an image or an embed is not removed.
+    |   Add "div" for RichEditor custom blocks and "span" for mentions.
     | - invisible_characters: characters ignored when looking for text.
     |   Leading and trailing whitespace is always ignored.
     |
